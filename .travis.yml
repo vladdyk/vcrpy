@@ -73,5 +73,5 @@ install:
 - pip install tox-run-command
 - if [[ $TOX_SUFFIX != 'flakes' ]]; then python setup.py install ; fi
 script:
-- tox -e "${TOX_SUFFIX}"
+#- tox -e "${TOX_SUFFIX}"
 - if [[ $TOX_SUFFIX == "boto3" ]]; then tox -e "${TOX_SUFFIX}"; else tox -e "${TOX_SUFFIX}" --run-command "bash -c 'REQUESTS_CA_BUNDLE=$(python -m pytest_httpbin.certs) py.test'"; fi
