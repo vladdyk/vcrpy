@@ -62,7 +62,7 @@ matrix:
     - env: TOX_SUFFIX="aiohttp"
       python: "pypy2.7-7.1.1"
 python:
-  - "2.7"
+#  - "2.7"
   - "3.4"
   - "3.6"
   - "3.7"
