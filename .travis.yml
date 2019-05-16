@@ -68,7 +68,7 @@ python:
   - "3.7"
 #  - "pypy2.7-7.1.1"
 #  - "pypy3.6-7.1.1"
-  - pypy
+  - pypy3
 install:
 - pip install tox-travis
 - if [[ $TOX_SUFFIX != 'flakes' ]]; then python setup.py install ; fi
