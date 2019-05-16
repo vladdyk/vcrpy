@@ -1,6 +1,6 @@
 language: python
 dist: xenial
-sudo: false
+sudo: true
 before_install: openssl version
 env:
   global:
@@ -56,7 +56,7 @@ matrix:
     - env: TOX_SUFFIX="flakes"
       python: pypy
     - env: TOX_SUFFIX="flakes"
-      python: "pypy3.5-5.9.0"
+      python: "pypy3.6-7.0"
     - env: TOX_SUFFIX="aiohttp"
       python: "2.7"
     - env: TOX_SUFFIX="aiohttp"
