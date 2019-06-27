@@ -20,7 +20,7 @@ def verify_pool_mgr():
 
 @pytest.fixture(scope='module')
 def pool_mgr():
-    return urllib3.PoolManager(cert_reqs='CERT_NONE',  assert_hostname=False)
+    return urllib3.PoolManager(cert_reqs='CERT_NONE')
 
 
 def test_status_code(httpbin_both, tmpdir, verify_pool_mgr):
