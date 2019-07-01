@@ -5,6 +5,7 @@
 # a good chance you are running on Windows.
 # You can and should use WSL for running tox on Windows when it calls bash scripts.
 if [[ ("${TOX_SUFFIX}" == *"boto3"*) || ("${TOX_ENV_NAME}" == *"boto3"*) ]]; then
+    echo "Testing boto3"
     py.test $*
 else
     REQUESTS_CA_BUNDLE=`python -m pytest_httpbin.certs` py.test $*
