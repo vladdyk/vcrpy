@@ -66,27 +66,27 @@ def test_boto3_awsrequest_stubs(tmpdir):
 
 
 def test_boto3_without_vcr():
-    username = 'user'
+    username = 'vcrpy'
     response = IAM_CLIENT.get_user(UserName=username)
 
-    assert response['User']['UserName'] == username
+    assert response['vcrpy']['UserName'] == username
 
 
 def test_boto_medium_difficulty(tmpdir):
-    username = 'user'
+    username = 'vcrpy'
 
     with vcr.use_cassette(str(tmpdir.join('boto3-medium.yml'))):
         response = IAM_CLIENT.get_user(UserName=username)
-        assert response['User']['UserName'] == username
+        assert response['vcrpy']['UserName'] == username
 
     with vcr.use_cassette(str(tmpdir.join('boto3-medium.yml'))) as cass:
         response = IAM_CLIENT.get_user(UserName=username)
-        assert response['User']['UserName'] == username
+        assert response['vcrpy']['UserName'] == username
         assert cass.all_played
 
 
 def test_boto_hardcore_mode(tmpdir):
-    username = 'user'
+    username = 'vcrpy'
     with vcr.use_cassette(str(tmpdir.join('boto3-hardcore.yml'))):
         ses = boto3.Session(
             aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
@@ -96,7 +96,7 @@ def test_boto_hardcore_mode(tmpdir):
 
         iam_client = ses.client('iam')
         response = iam_client.get_user(UserName=username)
-        assert response['User']['UserName'] == username
+        assert response['vcrpy']['UserName'] == username
 
     with vcr.use_cassette(str(tmpdir.join('boto3-hardcore.yml'))) as cass:
         ses = boto3.Session(
@@ -108,5 +108,5 @@ def test_boto_hardcore_mode(tmpdir):
 
         iam_client = ses.client('iam')
         response = iam_client.get_user(UserName=username)
-        assert response['User']['UserName'] == username
+        assert response['vcrpy']['UserName'] == username
         assert cass.all_played
