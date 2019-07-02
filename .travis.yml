@@ -1,7 +1,6 @@
 language: python
 before_install: openssl version
 dist: xenial
-sudo: true
 env:
   global:
     - secure: AifoKzwhjV94cmcQZrdQmqRu/9rkZZvWpwBv1daeAQpLOKFPGsOm3D+x2cSw9+iCfkgDZDfqQVv1kCaFVxTll8v8jTq5SJdqEY0NmGWbj/UkNtShh609oRDsuzLxAEwtVKYjf/h8K2BRea+bl1tGkwZ2vtmYS6dxNlAijjWOfds=
@@ -16,6 +15,8 @@ env:
     - TOX_SUFFIX="aiohttp"
 matrix:
   include:
+    - env: TOX_SUFFIX="boto3"
+      python: "3.7"
     - env: TOX_SUFFIX="flakes"
       python: "3.7"
       dist: xenial
