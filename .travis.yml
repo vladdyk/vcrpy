@@ -6,17 +6,24 @@ env:
     - secure: AifoKzwhjV94cmcQZrdQmqRu/9rkZZvWpwBv1daeAQpLOKFPGsOm3D+x2cSw9+iCfkgDZDfqQVv1kCaFVxTll8v8jTq5SJdqEY0NmGWbj/UkNtShh609oRDsuzLxAEwtVKYjf/h8K2BRea+bl1tGkwZ2vtmYS6dxNlAijjWOfds=
     - secure: LBSEg/gMj4u4Hrpo3zs6Y/1mTpd2RtcN49mZIFgTdbJ9IhpiNPqcEt647Lz94F9Eses2x2WbNuKqZKZZReY7QLbEzU1m0nN5jlaKrjcG5NR5clNABfFFyhgc0jBikyS4abAG8jc2efeaTrFuQwdoF4sE8YiVrkiVj2X5Xoi6sBk=
   matrix:
-    - TOX_SUFFIX="flakes"
-    - TOX_SUFFIX="requests"
-    - TOX_SUFFIX="httplib2"
     - TOX_SUFFIX="boto3"
-    - TOX_SUFFIX="urllib3"
-    - TOX_SUFFIX="tornado4"
-    - TOX_SUFFIX="aiohttp"
 matrix:
   include:
     - env: TOX_SUFFIX="boto3"
       python: "3.7"
+
+  exclude:
+    # Only run flakes on a single Python 2.x and a single 3.x
+    - env: TOX_SUFFIX="flakes"
+      python: "3.5"
+    - env: TOX_SUFFIX="flakes"
+      python: pypy
+    - env: TOX_SUFFIX="flakes"
+      python: pypy3
+    - env: TOX_SUFFIX="aiohttp"
+      python: "2.7"
+    - env: TOX_SUFFIX="aiohttp"
+      python: pypy
     - env: TOX_SUFFIX="flakes"
       python: "3.7"
       dist: xenial
@@ -32,21 +39,9 @@ matrix:
     - env: TOX_SUFFIX="aiohttp"
       python: "3.7"
       dist: xenial
-  allow_failures:
-    - env: TOX_SUFFIX="aiohttp"
-      python: "pypy3"
-  exclude:
-    # Only run flakes on a single Python 2.x and a single 3.x
-    - env: TOX_SUFFIX="flakes"
-      python: "3.5"
-    - env: TOX_SUFFIX="flakes"
-      python: pypy
-    - env: TOX_SUFFIX="flakes"
-      python: pypy3
-    - env: TOX_SUFFIX="aiohttp"
-      python: "2.7"
-    - env: TOX_SUFFIX="aiohttp"
-      python: pypy
+    allow_failures:
+      - env: TOX_SUFFIX="aiohttp"
+        python: "pypy3"
 python:
 - "2.7"
 - "3.5"
