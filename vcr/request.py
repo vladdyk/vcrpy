@@ -58,7 +58,10 @@ class Request(object):
         parse_uri = urlparse(self.uri)
         port = parse_uri.port
         if port is None:
-            port = {'https': 443, 'http': 80}[parse_uri.scheme]
+            try:
+                port = {'https': 443, 'http': 80}[parse_uri.scheme]
+            except KeyError:
+                pass
         return port
 
     @property
@@ -91,7 +94,7 @@ class Request(object):
             'method': self.method,
             'uri': self.uri,
             'body': self.body,
-            'headers': dict(((k, [v]) for k, v in self.headers.items())),
+            'headers': {k: [v] for k, v in self.headers.items()},
         }
 
     @classmethod

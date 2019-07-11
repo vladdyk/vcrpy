@@ -3,12 +3,19 @@ from __future__ import absolute_import
 
 import asyncio
 import functools
+import logging
 import json
 
-from aiohttp import ClientResponse
+from aiohttp import ClientResponse, streams
 from yarl import URL
 
 from vcr.request import Request
+
+log = logging.getLogger(__name__)
+
+
+class MockStream(asyncio.StreamReader, streams.AsyncStreamReaderMixin):
+    pass
 
 
 class MockClientResponse(ClientResponse):
@@ -26,7 +33,11 @@ class MockClientResponse(ClientResponse):
         )
 
     async def json(self, *, encoding='utf-8', loads=json.loads, **kwargs):  # NOQA: E999
-        return loads(self._body.decode(encoding))
+        stripped = self._body.strip()
+        if not stripped:
+            return None
+
+        return loads(stripped.decode(encoding))
 
     async def text(self, encoding='utf-8', errors='strict'):
         return self._body.decode(encoding, errors=errors)
@@ -37,14 +48,25 @@ class MockClientResponse(ClientResponse):
     def release(self):
         pass
 
+    @property
+    def content(self):
+        s = MockStream()
+        s.feed_data(self._body)
+        s.feed_eof()
+        return s
+
 
 def vcr_request(cassette, real_request):
     @functools.wraps(real_request)
     async def new_request(self, method, url, **kwargs):
         headers = kwargs.get('headers')
+        auth = kwargs.get('auth')
         headers = self._prepare_headers(headers)
-        data = kwargs.get('data')
+        data = kwargs.get('data', kwargs.get('json'))
         params = kwargs.get('params')
+
+        if auth is not None:
+            headers['AUTHORIZATION'] = auth.encode()
 
         request_url = URL(url)
         if params:
@@ -76,6 +98,8 @@ def vcr_request(cassette, real_request):
             response.close()
             return response
 
+        log.info("{} not in cassette, sending to real server", vcr_request)
+
         response = await real_request(self, method, url, **kwargs)  # NOQA: E999
 
         vcr_response = {
@@ -83,9 +107,9 @@ def vcr_request(cassette, real_request):
                 'code': response.status,
                 'message': response.reason,
             },
-            'headers': dict(response.headers),
+            'headers': {str(key): value for key, value in response.headers.items()},
             'body': {'string': (await response.read())},  # NOQA: E999
-            'url': response.url,
+            'url': str(response.url),
         }
         cassette.append(vcr_request, vcr_response)
 

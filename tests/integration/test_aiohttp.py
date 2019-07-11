@@ -47,15 +47,21 @@ def test_status(tmpdir, scheme):
         assert cassette.play_count == 1
 
 
-def test_headers(tmpdir, scheme):
+@pytest.mark.parametrize("auth", [None, aiohttp.BasicAuth("vcrpy", "test")])
+def test_headers(tmpdir, scheme, auth):
     url = scheme + '://httpbin.org'
     with vcr.use_cassette(str(tmpdir.join('headers.yaml'))):
-        response, _ = get(url)
+        response, _ = get(url, auth=auth)
 
     with vcr.use_cassette(str(tmpdir.join('headers.yaml'))) as cassette:
-        cassette_response, _ = get(url)
+        if auth is not None:
+            request = cassette.requests[0]
+            assert "AUTHORIZATION" in request.headers
+        cassette_response, _ = get(url, auth=auth)
         assert cassette_response.headers == response.headers
         assert cassette.play_count == 1
+        assert 'istr' not in cassette.data[0]
+        assert 'yarl.URL' not in cassette.data[0]
 
 
 def test_text(tmpdir, scheme):
@@ -93,14 +99,29 @@ def test_binary(tmpdir, scheme):
         assert cassette.play_count == 1
 
 
-def test_post(tmpdir, scheme):
+def test_stream(tmpdir, scheme):
+    url = scheme + '://httpbin.org/get'
+
+    with vcr.use_cassette(str(tmpdir.join('stream.yaml'))):
+        resp, body = get(url, output='raw')  # Do not use stream here, as the stream is exhausted by vcr
+
+    with vcr.use_cassette(str(tmpdir.join('stream.yaml'))) as cassette:
+        cassette_resp, cassette_body = get(url, output='stream')
+        assert cassette_body == body
+        assert cassette.play_count == 1
+
+
+@pytest.mark.parametrize('body', ['data', 'json'])
+def test_post(tmpdir, scheme, body):
     data = {'key1': 'value1', 'key2': 'value2'}
     url = scheme + '://httpbin.org/post'
     with vcr.use_cassette(str(tmpdir.join('post.yaml'))):
-        _, response_json = post(url, data=data)
+        _, response_json = post(url, **{body: data})
 
     with vcr.use_cassette(str(tmpdir.join('post.yaml'))) as cassette:
-        _, cassette_response_json = post(url, data=data)
+        request = cassette.requests[0]
+        assert request.body == data
+        _, cassette_response_json = post(url, **{body: data})
         assert cassette_response_json == response_json
         assert cassette.play_count == 1
 
@@ -178,4 +199,27 @@ def test_aiohttp_test_client(aiohttp_client, tmpdir):
     assert request.url == str(client.make_url(url))
     response_text = loop.run_until_complete(response.text())
     assert response_text == 'hello'
+    assert cassette.play_count == 1
+
+
+def test_aiohttp_test_client_json(aiohttp_client, tmpdir):
+    loop = asyncio.get_event_loop()
+    app = aiohttp_app()
+    url = '/json/empty'
+    client = loop.run_until_complete(aiohttp_client(app))
+
+    with vcr.use_cassette(str(tmpdir.join('get.yaml'))):
+        response = loop.run_until_complete(client.get(url))
+
+    assert response.status == 200
+    response_json = loop.run_until_complete(response.json())
+    assert response_json is None
+
+    with vcr.use_cassette(str(tmpdir.join('get.yaml'))) as cassette:
+        response = loop.run_until_complete(client.get(url))
+
+    request = cassette.requests[0]
+    assert request.url == str(client.make_url(url))
+    response_json = loop.run_until_complete(response.json())
+    assert response_json is None
     assert cassette.play_count == 1
